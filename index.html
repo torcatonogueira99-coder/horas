@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<title>ConstruHoras</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;height:100dvh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8f9fa;color:#1a1a2e;overflow:hidden}
+#app{max-width:430px;margin:0 auto;height:100%;height:100dvh;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.screen{display:none;flex-direction:column;height:100%;overflow:hidden;position:relative}
+.screen.active{display:flex}
+.content{flex:1;overflow-y:auto;padding:16px;padding-bottom:120px;-webkit-overflow-scrolling:touch}
+.topbar{display:flex;align-items:center;padding:16px;gap:12px;flex-shrink:0}
+.topbar h1{font-size:20px;font-weight:700;flex:1}
+.topbar h2{font-size:18px;font-weight:700;flex:1;text-align:center}
+.btn{border:none;border-radius:12px;padding:14px 20px;font-size:16px;font-weight:600;cursor:pointer;width:100%;touch-action:manipulation;-webkit-appearance:none}
+.btn-primary{background:#1a1a2e;color:#fff}
+.btn-secondary{background:#fff;color:#1a1a2e;border:1.5px solid #ddd;padding:10px 16px;font-size:14px;width:auto}
+.btn-danger{background:#c33;color:#fff}
+.btn-icon{background:none;border:none;padding:8px;cursor:pointer;color:#1a1a2e;font-size:20px;touch-action:manipulation}
+.input{width:100%;padding:14px;border:1.5px solid #ddd;border-radius:12px;font-size:16px;margin-bottom:14px;background:#fff;-webkit-appearance:none}
+.input:focus{outline:2px solid #1a1a2e;outline-offset:-1px}
+.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.card-row{display:flex;justify-content:space-between;align-items:center}
+.card-title{font-weight:600;font-size:15px}
+.card-sub{font-size:13px;color:#666;margin-top:4px}
+.tag{padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;background:#e8f0fe;color:#1a73e8}
+.summary{display:flex;gap:10px;margin-bottom:20px}
+.summary-box{flex:1;background:#fff;border-radius:16px;padding:18px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.summary-num{font-size:32px;font-weight:700}
+.summary-label{font-size:12px;color:#888;margin-top:4px}
+.obra-item{background:#fff;border:1.5px solid #ddd;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px;touch-action:manipulation}
+.obra-item.sel{border-color:#1a1a2e;background:#f0f0f5}
+.obra-radio{width:22px;height:22px;border:2px solid #ccc;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.obra-item.sel .obra-radio{border-color:#1a1a2e}
+.obra-item.sel .obra-radio::after{content:'';width:12px;height:12px;background:#1a1a2e;border-radius:50%}
+.obra-name{font-weight:600;font-size:14px}
+.obra-addr{font-size:12px;color:#999}
+.chart-bar{height:20px;border-radius:5px;margin-bottom:6px}
+.chart-label{font-size:13px;color:#666;margin-bottom:4px;display:flex;justify-content:space-between}
+.empty{text-align:center;padding:50px 20px;color:#aaa}
+.navbar{display:flex;justify-content:space-around;padding:10px 0 20px;border-top:1px solid #e0e0e0;position:fixed;bottom:0;left:0;right:0;background:#fff;z-index:100;max-width:430px;margin:0 auto}
+.navbtn{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:#999;cursor:pointer;border:none;background:none;padding:4px 14px;touch-action:manipulation}
+.navbtn.active{color:#1a1a2e}
+.navbtn svg{width:24px;height:24px}
+.fab{position:fixed;bottom:90px;right:20px;width:56px;height:56px;border-radius:50%;background:#1a1a2e;color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.25);z-index:90;touch-action:manipulation}
+.toast{position:fixed;bottom:120px;left:50%;transform:translateX(-50%) translateY(30px);background:#1a1a2e;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;z-index:1000;opacity:0;transition:all 0.3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.splash{position:fixed;inset:0;background:#1a1a2e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+.splash.done{opacity:0;pointer-events:none;transition:opacity 0.4s}
+.splash.hidden{display:none}
+.splash-logo{width:100px;height:100px;background:#fff;border-radius:24px;display:flex;align-items:center;justify-content:center;margin-bottom:24px}
+.splash-logo svg{width:50px;height:50px;color:#1a1a2e}
+.splash h1{color:#fff;font-size:26px;margin-bottom:8px}
+.splash p{color:#888;font-size:14px;margin-bottom:32px}
+.mes-btns{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.mes-btn{padding:8px 14px;border-radius:10px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer;white-space:nowrap;color:#888;touch-action:manipulation}
+.mes-btn.on{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.on{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto}
+.modal-box h3{font-size:16px;margin-bottom:12px}
+.modal-box textarea{width:100%;height:200px;padding:10px;border:1px solid #ddd;border-radius:8px;font-family:monospace;font-size:12px;resize:none}
+.modal-btns{display:flex;gap:10px;margin-top:12px}
+.modal-btns .btn{flex:1}
+.danger{color:#c33;border-color:#fcc!important}
+.section-title{font-size:15px;font-weight:700;margin:0 0 12px}
+.worker-item{background:#fff;border:1.5px solid #ddd;border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.worker-name{font-weight:600;font-size:15px}
+.worker-role{font-size:12px;color:#888}
+.login-box{background:#fff;border-radius:16px;padding:24px;margin:0 16px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.login-box h2{text-align:center;margin-bottom:20px;font-size:22px}
+.login-box p{text-align:center;color:#888;font-size:13px;margin-bottom:16px}
+.admin-badge{background:#1a1a2e;color:#fff;font-size:10px;padding:2px 8px;border-radius:6px;margin-left:8px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="splash" id="scr-login">
+  <div class="splash-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 21h18M5 21V7l8-4 8 4v14M9 21v-6h6v6"/></svg>
+  </div>
+  <h1>ConstruHoras</h1>
+  <p>Registo de horas de trabalho</p>
+  <div class="login-box">
+    <h2>Entrar</h2>
+    <input type="text" class="input" id="login-user" placeholder="Utilizador" style="margin-bottom:10px;">
+    <input type="password" class="input" id="login-pass" placeholder="Palavra-passe" style="margin-bottom:10px;">
+    <button class="btn btn-primary" id="btn-login">Entrar</button>
+    <p id="login-error" style="color:#c33;margin-top:10px;display:none;">Utilizador ou palavra-passe errados</p>
+  </div>
+</div>
+
+<div id="app">
+
+<!-- DASHBOARD -->
+<div id="scr-dash" class="screen active">
+  <div class="topbar">
+    <h1>Resumo</h1>
+    <span style="font-size:13px;color:#888;" id="dash-mes">Julho 2026</span>
+  </div>
+  <div class="content">
+    <div id="admin-banner" style="display:none;margin-bottom:16px;">
+      <div class="card" style="background:#1a1a2e;color:#fff;">
+        <div class="card-row">
+          <div><div class="card-title" style="color:#fff;">Modo Administrador</div><div class="card-sub" style="color:#aaa;">Podes gerir trabalhadores</div></div>
+          <button class="btn btn-secondary" id="btn-admin-panel" style="background:#fff;color:#1a1a2e;border:none;">Gerir</button>
+        </div>
+      </div>
+    </div>
+    <div class="summary">
+      <div class="summary-box"><div class="summary-num" id="d-horas">0</div><div class="summary-label">Horas mes</div></div>
+      <div class="summary-box"><div class="summary-num" id="d-dias">0</div><div class="summary-label">Dias</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span class="section-title">Ultimos registos</span>
+      <button class="btn btn-secondary" id="btn-ver-todos">Ver todos</button>
+    </div>
+    <div id="d-recentes"></div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="scr-admin" class="screen">
+  <div class="topbar">
+    <button class="btn-icon" id="btn-back-admin">&#10094;</button>
+    <h2>Trabalhadores</h2>
+    <div style="width:36px;"></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-title">Adicionar trabalhador</div>
+      <div class="card-sub" style="margin-bottom:10px;">Cria uma conta para um novo trabalhador</div>
+      <input type="text" class="input" id="new-worker-name" placeholder="Nome completo" style="margin-bottom:8px;">
+      <input type="text" class="input" id="new-worker-user" placeholder="Nome de utilizador" style="margin-bottom:8px;">
+      <input type="password" class="input" id="new-worker-pass" placeholder="Palavra-passe" style="margin-bottom:8px;">
+      <button class="btn btn-primary" id="btn-add-worker">Adicionar trabalhador</button>
+    </div>
+    <div class="section-title" style="margin-top:20px;">Trabalhadores registados</div>
+    <div id="workers-list"></div>
+  </div>
+</div>
+
+<!-- NOVO REGISTO -->
+<div id="scr-novo" class="screen">
+  <div class="topbar">
+    <button class="btn-icon" id="btn-back-novo">&#10094;</button>
+    <h2>Novo registo</h2>
+    <div style="width:36px;"></div>
+  </div>
+  <div class="content">
+    <label style="font-size:13px;color:#888;margin-bottom:6px;display:block;">Data</label>
+    <input type="date" class="input" id="r-data">
+    <label style="font-size:13px;color:#888;margin-bottom:6px;display:block;">Horas trabalhadas</label>
+    <input type="number" class="input" id="r-horas" placeholder="Ex: 8" min="0.5" max="24" step="0.5">
+    <label style="font-size:13px;color:#888;margin-bottom:10px;display:block;">Local de obra</label>
+    <div id="r-obras"></div>
+    <input type="text" class="input" id="r-outro" placeholder="Ou escreve outro local..." style="margin-top:4px;">
+    <button class="btn btn-primary" id="btn-save-reg">Guardar registo</button>
+  </div>
+</div>
+
+<!-- LISTA -->
+<div id="scr-lista" class="screen">
+  <div class="topbar">
+    <button class="btn-icon" id="btn-back-lista">&#10094;</button>
+    <h2>Todos os registos</h2>
+    <div style="width:36px;"></div>
+  </div>
+  <div class="content" id="lista-content"></div>
+</div>
+
+<!-- RELATORIO -->
+<div id="scr-rel" class="screen">
+  <div class="topbar">
+    <h1>Relatorio</h1>
+    <button class="btn btn-secondary" id="btn-export">Excel</button>
+  </div>
+  <div class="content">
+    <div class="mes-btns" id="mes-btns"></div>
+    <div class="summary">
+      <div class="summary-box"><div class="summary-num" id="rel-horas">0</div><div class="summary-label">Total horas</div></div>
+      <div class="summary-box"><div class="summary-num" id="rel-dias">0</div><div class="summary-label">Dias</div></div>
+    </div>
+    <div class="section-title">Horas por obra</div>
+    <div id="rel-barras"></div>
+    <div class="section-title" style="margin-top:20px;">Registos do mes</div>
+    <div id="rel-lista"></div>
+  </div>
+</div>
+
+<!-- AJUSTES -->
+<div id="scr-ajustes" class="screen">
+  <div class="topbar">
+    <button class="btn-icon" id="btn-back-ajustes">&#10094;</button>
+    <h2>Ajustes</h2>
+    <div style="width:36px;"></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-title">Conta atual</div>
+      <div class="card-sub" id="settings-user" style="margin-top:4px;">-</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Nome da empresa</div>
+      <input type="text" class="input" id="cfg-empresa" style="margin-top:10px;margin-bottom:0;">
+    </div>
+    <div class="card">
+      <div class="card-title">Obras pre-definidas</div>
+      <div class="card-sub" style="margin-bottom:10px;">Uma por linha: Nome - Morada</div>
+      <textarea class="input" id="cfg-obras" rows="5" style="resize:vertical;margin-bottom:0;"></textarea>
+    </div>
+    <button class="btn btn-primary" id="btn-save-cfg">Guardar ajustes</button>
+    <button class="btn btn-secondary" style="width:100%;margin-top:10px;" id="btn-backup">Backup dados (JSON)</button>
+    <button class="btn btn-secondary danger" style="width:100%;margin-top:10px;" id="btn-logout">Sair da conta</button>
+  </div>
+</div>
+
+</div>
+
+<div class="navbar" id="navbar">
+  <button class="navbtn active" id="n-dash">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio
+  </button>
+  <button class="navbtn" id="n-novo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Registar
+  </button>
+  <button class="navbtn" id="n-rel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Relatorio
+  </button>
+  <button class="navbtn" id="n-ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l-.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Ajustes
+  </button>
+</div>
+
+<button class="fab" id="btn-fab">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modal-exp">
+  <div class="modal-box">
+    <h3>Exportar para Excel</h3>
+    <p style="font-size:13px;color:#666;margin-bottom:10px;">Copia o texto e cola no Excel.</p>
+    <textarea id="exp-text" readonly></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btn-modal-close">Fechar</button>
+      <button class="btn btn-primary" id="btn-modal-copy">Copiar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function $(id){return document.getElementById(id)}
+var LS=false;try{localStorage.setItem('__t','1');localStorage.removeItem('__t');LS=true}catch(e){}
+function load(k,d){if(!LS)return d;try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){if(!LS)return;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+// ===== USERS SYSTEM =====
+var users=load('ch_users',{
+  admin:{name:'Administrador',pass:'admin123',isAdmin:true}
+});
+var currentUser=load('ch_currentUser',null);
+
+// ===== CONFIG =====
+var cfg=load('ch_cfg',{
+  empresa:'ConstruHoras',
+  obras:[
+    {n:'Obra Centro Comercial',m:'Av. Liberdade, Lisboa'},
+    {n:'Obra Residencial Park',m:'Rua dos Pinheiros, Porto'},
+    {n:'Obra Escola Primaria',m:'Rua da Alegria, Braga'}
+  ]
+});
+
+// ===== DATA =====
+var allRegs=load('ch_regs',[]);
+var selObra=null;
+var selMes=new Date().getMonth()+1;
+var selAno=new Date().getFullYear();
+var nextId=1;
+if(allRegs.length>0){var maxId=allRegs[0].id;for(var i=1;i<allRegs.length;i++){if(allRegs[i].id>maxId)maxId=allRegs[i].id}nextId=maxId+1}
+
+function myRegs(){if(!currentUser)return[];return allRegs.filter(function(r){return r.user===currentUser})}
+
+function fmtDate(s){var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0]}
+function fmtMes(s){var n=['','Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];var p=s.split('-');return n[parseInt(p[1])]+' '+p[0]}
+function filtMes(m,a,list){var out=[];for(var i=0;i<list.length;i++){var r=list[i];var p=r.data.split('-');if(parseInt(p[1])===m&&parseInt(p[0])===a)out.push(r)}return out}
+function nowMA(){var d=new Date();return{a:d.getFullYear(),m:d.getMonth()+1}}
+function saveData(){save('ch_regs',allRegs);save('ch_users',users);save('ch_cfg',cfg);save('ch_currentUser',currentUser)}
+
+function showT(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+// ===== LOGIN =====
+function doLogin(){var u=$('login-user').value.trim();var p=$('login-pass').value;if(!u||!p){showT('Preenche os campos');return}if(users[u]&&users[u].pass===p){currentUser=u;saveData();$('login-error').style.display='none';$('scr-login').classList.add('hidden');initApp()}else{$('login-error').style.display='block'}}
+function doLogout(){currentUser=null;saveData();location.reload()}
+
+// ===== NAV =====
+function go(id){var screens=document.querySelectorAll('.screen');for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');$(id).classList.add('active');var navs=document.querySelectorAll('.navbtn');for(var i=0;i<navs.length;i++)navs[i].classList.remove('active');var map={'scr-dash':'n-dash','scr-novo':'n-novo','scr-rel':'n-rel','scr-ajustes':'n-ajustes'};if(map[id])$(map[id]).classList.add('active');window.scrollTo(0,0);if(id==='scr-dash')updateDash();if(id==='scr-lista')renderLista();if(id==='scr-rel')updateRel();if(id==='scr-novo'){var today=new Date();var yyyy=today.getFullYear();var mm=String(today.getMonth()+1).padStart(2,'0');var dd=String(today.getDate()).padStart(2,'0');$('r-data').value=yyyy+'-'+mm+'-'+dd;renderObras()}if(id==='scr-ajustes')loadCfg();if(id==='scr-admin')renderWorkers()}
+
+function initApp(){if(!currentUser)return;var isAdmin=users[currentUser]&&users[currentUser].isAdmin;$('admin-banner').style.display=isAdmin?'block':'none';updateDash()}
+
+// ===== DASHBOARD =====
+function updateDash(){var mr=filtMes(nowMA().m,nowMA().a,myRegs());var th=0;for(var i=0;i<mr.length;i++)th+=mr[i].horas;$('d-horas').textContent=th.toFixed(1);$('d-dias').textContent=mr.length;$('dash-mes').textContent=fmtMes(nowMA().a+'-'+String(nowMA().m).padStart(2,'0')+'-01');var rec=[];for(var i=0;i<Math.min(mr.length,5);i++)rec.push(mr[i]);var box=$('d-recentes');if(rec.length===0){box.innerHTML='<div class="empty">Ainda sem registos.<br>Toca no + para comecar!</div>';return}var html='';for(var i=0;i<rec.length;i++){var r=rec[i];html+='<div class="card"><div class="card-row"><div><div class="card-title">'+fmtDate(r.data)+'</div><div class="card-sub">'+r.obra+'</div></div><span class="tag">'+r.horas+'h</span></div></div>'}box.innerHTML=html}
+
+// ===== ADMIN =====
+function renderWorkers(){var box=$('workers-list');var html='';for(var u in users){if(u==='admin')continue;var w=users[u];html+='<div class="worker-item"><div><div class="worker-name">'+w.name+'</div><div class="worker-role">@'+u+'</div></div><button class="btn btn-danger" style="width:auto;padding:8px 14px;font-size:13px;" data-del-user="'+u+'">Remover</button></div>'}if(html==='')html='<div class="empty">Sem trabalhadores registados</div>';box.innerHTML=html;var btns=box.querySelectorAll('[data-del-user]');for(var i=0;i<btns.length;i++){(function(uname){btns[i].addEventListener('click',function(){if(!confirm('R
